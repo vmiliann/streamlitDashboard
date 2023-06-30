@@ -29,7 +29,7 @@ from textblob import TextBlob
 
 st.set_page_config(
     page_title='Topic Modeling',
-    page_icon='C:\\Users\\Vladimir\\PycharmProjects\streamlitDashboard\\data\\favicon.png',
+    page_icon='data/favicon.png',
     layout='wide'
 )
 
@@ -42,7 +42,7 @@ nltk.download('punkt')
 # textblob.download_corpora()
 DATASETS = {
     'Escuela de Verano 2021': {
-        'path': 'C:\\Users\\Vladimir\\PycharmProjects\streamlitDashboard\\data\\EV2021.csv.zip',
+        'path': 'data/EV2021.csv.zip',
         'column': 'Q05_pregunta',
         'url': '#',
         'description': (
@@ -52,7 +52,7 @@ DATASETS = {
         )
     },
     'Escuela de Invierno 2021': {
-        'path': 'C:\\Users\\Vladimir\\PycharmProjects\streamlitDashboard\\data\\EI2021.csv.zip',
+        'path': 'data/EI2021.csv.zip',
         'column': 'Q05_pregunta',
         'url': '#',
         'description': (
@@ -150,7 +150,7 @@ MODELS = {
 
 COLORS = [color for color in mcolors.XKCD_COLORS.values()]
 
-WORDCLOUD_FONT_PATH = r'C:\\Users\\Vladimir\\PycharmProjects\streamlitDashboard\\data\\Inkfree.ttf'
+WORDCLOUD_FONT_PATH = r'data/Inkfree.ttf'
 
 EMAIL_REGEX_STR = r'\S*@\S*'
 MENTION_REGEX_STR = r'@\S*'
@@ -414,7 +414,7 @@ if __name__ == '__main__':
     st.title('Topic Modeling')
     st.header('¿Qué es el modelado de temas?')
     with st.expander('Hero Image'):
-        img = Image.open('C:\\Users\\Vladimir\\PycharmProjects\streamlitDashboard\\data\\is-this-a-topic-modeling.jpg')
+        img = Image.open('data/is-this-a-topic-modeling.jpg')
         st.image(img, caption='No ... no it\'s not ...', use_column_width=True)
     st.markdown(
         'El modelado de temas es un término amplio. Abarca una serie de métodos específicos de aprendizaje estadístico.'
@@ -427,7 +427,7 @@ if __name__ == '__main__':
 
     with st.expander('Detalles adicionales'):
         st.markdown('El objetivo puede verse como una factorización matricial.')
-        img = Image.open('C:\\Users\\Vladimir\\PycharmProjects\streamlitDashboard\\data\\mf.png')
+        img = Image.open('data/mf.png')
         st.image(img, use_column_width=True)
         st.markdown('Esta factorización hace que los métodos sean mucho más eficientes que la caracterización '
                     'directa de documentos en términos de palabras.')
