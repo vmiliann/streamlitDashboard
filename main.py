@@ -29,7 +29,7 @@ from textblob import TextBlob
 
 st.set_page_config(
     page_title='Topic Modeling',
-    page_icon='C:\\Users\\Vladimir\\PycharmProjects\\streamlitDashboard\\data\\favicon.png',
+    page_icon='C:\\Users\\Vladimir\\PycharmProjects\streamlitDashboard\\data\\favicon.png',
     layout='wide'
 )
 
@@ -41,29 +41,18 @@ nltk.download('vader_lexicon')
 nltk.download('punkt')
 # textblob.download_corpora()
 DATASETS = {
-    'Five Years of Elon Musk Tweets': {
-        'path': 'C:\\Users\\Vladimir\\PycharmProjects\\streamlitDashboard\\data\\elonmusk.csv.zip',
-        'column': 'tweet',
-        'url': 'https://www.kaggle.com/vidyapb/elon-musk-tweets-2015-to-2020',
-        'description': (
-            'I scraped Elon Musk\'s tweets from the last 5 years using twint library. My inspiration behind this is to '
-            'see how public personalities are influencing common people on Social Media Platforms. I would love to see '
-            'some notebooks around this dataset, giving us insights like what are the topics which Tesla mostly tweets '
-            'about? How are Tesla\'s stocks being influenced by his tweets?'
-        )
-    },
-    'Airline Tweets': {
-        'path': 'C:\\Users\\Vladimir\\PycharmProjects\\streamlitDashboard\\data\\Tweets.csv.zip',
-        'column': 'text',
-        'url': 'https://www.kaggle.com/crowdflower/twitter-airline-sentiment',
+    'Escuela de Verano 2021': {
+        'path': 'C:\\Users\\Vladimir\\PycharmProjects\streamlitDashboard\\data\\EV2021.csv.zip',
+        'column': 'Q05_pregunta',
+        'url': '#',
         'description': (
             'A sentiment analysis job about the problems of each major U.S. airline. Twitter data was scraped from '
             'February of 2015 and contributors were asked to first classify positive, negative, and neutral tweets, '
             'followed by categorizing negative reasons (such as "late flight" or "rude service").'
         )
     },
-    'Escuela de Invierno 2021 Opiniones': {
-        'path': 'C:\\Users\\Vladimir\\PycharmProjects\\streamlitDashboard\\data\\EI2021.csv.zip',
+    'Escuela de Invierno 2021': {
+        'path': 'C:\\Users\\Vladimir\\PycharmProjects\streamlitDashboard\\data\\EI2021.csv.zip',
         'column': 'Q05_pregunta',
         'url': '#',
         'description': (
@@ -75,57 +64,74 @@ DATASETS = {
 
 def lda_options():
     return {
-        'num_topics': st.number_input('Number of Topics', min_value=1, value=9,
-                                      help='The number of requested latent topics to be extracted from the training corpus.'),
+        'num_topics': st.number_input('Numero de Tópicos', min_value=1, value=9,
+                                      help='El número de temas latentes solicitados para ser extraídos del corpus '
+                                           'de entrenamiento.'),
         'chunksize': st.number_input('Chunk Size', min_value=1, value=2000,
-                                     help='Number of documents to be used in each training chunk.'),
+                                     help='Número de documentos que se utilizarán en cada fragmento de formación.'),
         'passes': st.number_input('Passes', min_value=1, value=1,
-                                  help='Number of passes through the corpus during training.'),
+                                  help='Número de iteraciones por el corpus durante el entrenamiento.'),
         'update_every': st.number_input('Update Every', min_value=1, value=1,
-                                        help='Number of documents to be iterated through for each update. Set to 0 for batch learning, > 1 for online iterative learning.'),
+                                        help='Número de documentos que se van a iterar para cada actualización. '
+                                             'Establézcalo en 0 para el aprendizaje por lotes,'
+                                             ' 1 para el aprendizaje iterativo en línea.'),
         'alpha': st.selectbox('𝛼', ('symmetric', 'asymmetric', 'auto'),
-                              help='A priori belief on document-topic distribution.'),
-        'eta': st.selectbox('𝜂', (None, 'symmetric', 'auto'), help='A-priori belief on topic-word distribution'),
+                              help='Creencia a priori en la distribución documento-tema.'),
+        'eta': st.selectbox('𝜂', (None, 'symmetric', 'auto'), help='Creencia a priori sobre la distribución tema-palabra.'),
         'decay': st.number_input('𝜅', min_value=0.5, max_value=1.0, value=0.5,
-                                 help='A number between (0.5, 1] to weight what percentage of the previous lambda value is forgotten when each new document is examined.'),
+                                 help='Un número entre (0,5, 1) para ponderar qué porcentaje del valor lambda '
+                                      'anterior se olvida cuando se examina cada nuevo documento.'),
         'offset': st.number_input('𝜏_0', value=1.0,
-                                  help='Hyper-parameter that controls how much we will slow down the first steps the first few iterations.'),
+                                  help='Hiperparámetro que controla cuánto ralentizaremos los primeros pasos '
+                                       'las primeras iteraciones.'),
         'eval_every': st.number_input('Evaluate Every', min_value=1, value=10,
-                                      help='Log perplexity is estimated every that many updates.'),
-        'iterations': st.number_input('Iterations', min_value=1, value=50,
-                                      help='Maximum number of iterations through the corpus when inferring the topic distribution of a corpus.'),
+                                      help='La perplejidad de registro se estima cada tantas actualizaciones.'),
+        'iterations': st.number_input('Iteraciones', min_value=1, value=50,
+                                      help='Número máximo de iteraciones a través del corpus al inferir la '
+                                           'distribución de temas de un corpus.'),
         'gamma_threshold': st.number_input('𝛾', min_value=0.0, value=0.001,
-                                           help='Minimum change in the value of the gamma parameters to continue iterating.'),
-        'minimum_probability': st.number_input('Minimum Probability', min_value=0.0, max_value=1.0, value=0.01,
-                                               help='Topics with a probability lower than this threshold will be filtered out.'),
+                                           help='Cambio mínimo en el valor de los parámetros gamma para '
+                                                'continuar iterando.'),
+        'minimum_probability': st.number_input('Probability Minima', min_value=0.0, max_value=1.0, value=0.01,
+                                               help='Se filtrarán los temas con una probabilidad inferior a '
+                                                    'este umbral.'),
         'minimum_phi_value': st.number_input('𝜑', min_value=0.0, value=0.01,
-                                             help='if per_word_topics is True, this represents a lower bound on the term probabilities.'),
+                                             help='si per_word_topics es True, esto representa un límite inferior '
+                                                  'en las probabilidades del término.'),
         'per_word_topics': st.checkbox('Per Word Topics',
-                                       help='If True, the model also computes a list of topics, sorted in descending order of most likely topics for each word, along with their phi values multiplied by the feature length (i.e. word count).')
+                                       help='Si es Verdadero, el modelo también calcula una lista de temas, '
+                                            'ordenados en orden descendente de los temas más probables para cada '
+                                            'palabra, junto con sus valores de phi multiplicados por la longitud de '
+                                            'la función (es decir, el recuento de palabras).')
     }
 
 
 def nmf_options():
     return {
-        'num_topics': st.number_input('Number of Topics', min_value=1, value=9, help='Number of topics to extract.'),
+        'num_topics': st.number_input('Numbero of Topicos', min_value=1, value=9, help='Numbero de topicos a extraer.'),
         'chunksize': st.number_input('Chunk Size', min_value=1, value=2000,
-                                     help='Number of documents to be used in each training chunk.'),
+                                     help='Número de documentos que se utilizarán en cada fragmento de formación.'),
         'passes': st.number_input('Passes', min_value=1, value=1,
-                                  help='Number of full passes over the training corpus.'),
+                                  help='Número de pasadas completas sobre el corpus de entrenamiento.'),
         'kappa': st.number_input('𝜅', min_value=0.0, value=1.0, help='Gradient descent step size.'),
         'minimum_probability': st.number_input('Minimum Probability', min_value=0.0, max_value=1.0, value=0.01,
-                                               help='If normalize is True, topics with smaller probabilities are filtered out. If normalize is False, topics with smaller factors are filtered out. If set to None, a value of 1e-8 is used to prevent 0s.'),
+                                               help='Si normalizar es Verdadero, se filtran los temas con '
+                                                    'probabilidades más pequeñas. Si normalize es False, se filtran '
+                                                    'los temas con factores más pequeños. Si se establece en Ninguno,'
+                                                    ' se utiliza un valor de 1e-8 para evitar los 0.'),
         'w_max_iter': st.number_input('W max iter', min_value=1, value=200,
-                                      help='Maximum number of iterations to train W per each batch.'),
+                                      help='Número máximo de iteraciones para entrenar W por cada lote.'),
         'w_stop_condition': st.number_input('W stop cond', min_value=0.0, value=0.0001,
-                                            help=' If error difference gets less than that, training of W stops for the current batch.'),
+                                            help='Si la diferencia de error es menor que eso, el entrenamiento de '
+                                                 'W se detiene para el lote actual.'),
         'h_max_iter': st.number_input('H max iter', min_value=1, value=50,
-                                      help='Maximum number of iterations to train h per each batch.'),
+                                      help='Número máximo de iteraciones para entrenar h por cada lote.'),
         'h_stop_condition': st.number_input('W stop cond', min_value=0.0, value=0.001,
-                                            help='If error difference gets less than that, training of h stops for the current batch.'),
+                                            help='Si la diferencia de error es menor que eso, el entrenamiento de h '
+                                                 'se detiene para el lote actual.'),
         'eval_every': st.number_input('Evaluate Every', min_value=1, value=10,
-                                      help='Number of batches after which l2 norm of (v - Wh) is computed.'),
-        'normalize': st.selectbox('Normalize', (True, False, None), help='Whether to normalize the result.')
+                                      help='Número de lotes después de los cuales se calcula la norma l2 de (v - Wh).'),
+        'normalize': st.selectbox('Normalize', (True, False, None), help='Ya sea para normalizar el resultado.')
     }
 
 
@@ -144,7 +150,7 @@ MODELS = {
 
 COLORS = [color for color in mcolors.XKCD_COLORS.values()]
 
-WORDCLOUD_FONT_PATH = r'data\\Inkfree.ttf'
+WORDCLOUD_FONT_PATH = r'C:\\Users\\Vladimir\\PycharmProjects\streamlitDashboard\\data\\Inkfree.ttf'
 
 EMAIL_REGEX_STR = r'\S*@\S*'
 MENTION_REGEX_STR = r'@\S*'
@@ -197,14 +203,7 @@ def generate_docs(texts_df: pd.DataFrame, text_column: str, ngrams: str = None):
 
 @st.cache_data()
 def generate_wordcloud(docs, collocations: bool = False):
-    # print(docs.__len__())
-    # print(docs)
     wordcloud_text = (' '.join(' '.join(doc) for doc in docs))
-    # print(wordcloud_text)
-    # wordcloud_text = ""
-    # for doc in docs:
-    #     print(doc)
-    #     wordcloud_text = wordcloud_text + " " + doc.__str__()
     word_cloud = WordCloud(font_path=WORDCLOUD_FONT_PATH, width=700, height=600,
                            background_color='white', collocations=collocations).generate(wordcloud_text)
     return word_cloud
@@ -304,47 +303,63 @@ if __name__ == '__main__':
         st.form_submit_button('Apply')
 
     st.title('Escuela Internacional de Postgrado')
+
+    st.header('Datasets')
+    st.markdown('Precargado de un par de pequeños conjuntos de datos.')
+    selected_dataset = st.selectbox('Dataset', [None, *sorted(list(DATASETS.keys()))], on_change=clear_session_state)
+    if not selected_dataset:
+        st.write('Seleccione un conjunto de Datos ...')
+        st.stop()
+
+    with st.expander('Descripción del Dataset'):
+        st.markdown(DATASETS[selected_dataset]['description'])
+        st.markdown(DATASETS[selected_dataset]['url'])
+
+    text_column = DATASETS[selected_dataset]['column']
+    texts_df = generate_texts_df(selected_dataset)
+    docs = generate_docs(texts_df, text_column, ngrams=None)
+
     st.header('Información estadística general')
     df = generate_texts_df('Escuela de Invierno 2021 Opiniones')
     ## Change the reviews type to string
-    df['Q05_pregunta'] = df['Q05_pregunta'].astype(str)
+    texts_df['Q05_pregunta'] = texts_df['Q05_pregunta'].astype(str)
     ## Lowercase all reviews
-    df['text'] = df['Q05_pregunta'].apply(lambda x: " ".join(x.lower() for x in x.split()))
+    texts_df['text'] = texts_df['Q05_pregunta'].apply(lambda x: " ".join(x.lower() for x in x.split()))
     ## remove punctuation
-    df['text'] = df['text'].str.replace('[^ws]', '')
+    texts_df['text'] = texts_df['text'].str.replace('[^ws]', '')
     ## remove stopwords
     stop = stopwords.words('spanish')
-    df['text'] = df['text'].apply(lambda x: " ".join(x for x in x.split() if x not in stop))
+    texts_df['text'] = texts_df['text'].apply(lambda x: " ".join(x for x in x.split() if x not in stop))
     #df2 = df.iloc[1:15, 2:16]
 
     with st.expander('Cursos ofrecidos'):
-        cursos = generate_texts_df('Escuela de Invierno 2021 Opiniones').groupby("Curso")["Curso"].value_counts()
+        cursos = texts_df.groupby("Curso")["Curso"].value_counts()
         st.table(cursos)
 
     with st.expander('Cantidad de estudiantes por cursos'):
         fig, ax = plt.subplots()
-        result = df.groupby(['Curso']).size()
+        result = texts_df.groupby(['Curso']).size()
         sns.barplot(x=result.values, y=result.index)
         st.pyplot(fig)
 
     with st.expander('Correlacion entre indicadores'):
-        matrix = df.iloc[:, 2:17].corr().round(1)
+        matrix = texts_df.iloc[:, 2:17].corr().round(1)
         fig, ax = plt.subplots()
-        result = df.groupby(['Curso']).size()
+        result = texts_df.groupby(['Curso']).size()
         sns.heatmap(matrix, annot=True)
         st.pyplot(fig)
 
     with st.expander('Equipo  de Conexión'):
-        st.table(df.iloc[:, 17:21].sum())
+        st.table(texts_df.iloc[:, 17:21].sum())
 
     with st.expander('Tipo de Conexión'):
-        st.table(df.iloc[:, 21:27].sum())
+        st.table(texts_df.iloc[:, 21:27].sum())
 
     swords = set().union(stopwords.words('spanish'))
-    df['Q05_pregunta'].drop_duplicates()
+    texts_df['Q05_pregunta'].drop_duplicates()
     # df.drop_duplicates(subset='text', inplace=True)
 
-    df['processed_text'] = df['Q05_pregunta'].str.lower() \
+    texts_df['processed_text'] = texts_df['Q05_pregunta'].str.lower() \
         .str.replace('(@[a-z0-9]+)\w+', ' ') \
         .str.replace('(http\S+)', ' ') \
         .str.replace('([^0-9a-z \t])', ' ') \
@@ -382,24 +397,24 @@ if __name__ == '__main__':
         "momento de escribir), o la intención comunicativa emocional (o sea, el efecto emocional que el autor "
         "intenta causar en el lector)."
     )
-    df = df[df['text'].notna()]
+    texts_df = texts_df[texts_df['text'].notna()]
     # df['text'].drop_duplicates()
-    df['sentiment_score'] = df['text'].apply(senti)
+    texts_df['sentiment_score'] = texts_df['text'].apply(senti)
     # st.table(df['sentiment_score'].apply(lambda x: round(x, )).value_counts())
     with st.expander('Ejemplo de opiniones'):
-        st.table(df['Q05_pregunta'].head())
+        st.table(texts_df['Q05_pregunta'].head())
     with st.expander('Histograma de la polaridad de las opiniones'):
         fig, ax = plt.subplots()
-        df['sentiment_score'].hist()
+        texts_df['sentiment_score'].hist()
     # df.groupby(['Curso']).size().plot(kind="barh")
         st.pyplot(fig)
     with st.expander('Calificación de las opiniones'):
-        st.dataframe(df[['Q05_pregunta', 'sentiment_score']])
+        st.dataframe(texts_df[['Q05_pregunta', 'sentiment_score']])
 
     st.title('Topic Modeling')
     st.header('¿Qué es el modelado de temas?')
     with st.expander('Hero Image'):
-        img = Image.open('data\\is-this-a-topic-modeling.jpg')
+        img = Image.open('C:\\Users\\Vladimir\\PycharmProjects\streamlitDashboard\\data\\is-this-a-topic-modeling.jpg')
         st.image(img, caption='No ... no it\'s not ...', use_column_width=True)
     st.markdown(
         'El modelado de temas es un término amplio. Abarca una serie de métodos específicos de aprendizaje estadístico.'
@@ -412,28 +427,13 @@ if __name__ == '__main__':
 
     with st.expander('Detalles adicionales'):
         st.markdown('El objetivo puede verse como una factorización matricial.')
-        img = Image.open('data\\mf.png')
+        img = Image.open('C:\\Users\\Vladimir\\PycharmProjects\streamlitDashboard\\data\\mf.png')
         st.image(img, use_column_width=True)
         st.markdown('Esta factorización hace que los métodos sean mucho más eficientes que la caracterización '
                     'directa de documentos en términos de palabras.')
         st.markdown('Puede encontrar más información sobre LDA y NMF en:'
                     'https://en.wikipedia.org/wiki/Latent_Dirichlet_allocation y '
                     'https://en.wikipedia.org/wiki/Non-negative_matrix_factorization, respectivamente.')
-
-    st.header('Datasets')
-    st.markdown('Precargado de un par de pequeños conjuntos de datos.')
-    selected_dataset = st.selectbox('Dataset', [None, *sorted(list(DATASETS.keys()))], on_change=clear_session_state)
-    if not selected_dataset:
-        st.write('Seleccione un conjunto de Datos ...')
-        st.stop()
-
-    with st.expander('Descripción del Dataset'):
-        st.markdown(DATASETS[selected_dataset]['description'])
-        st.markdown(DATASETS[selected_dataset]['url'])
-
-    text_column = DATASETS[selected_dataset]['column']
-    texts_df = generate_texts_df(selected_dataset)
-    docs = generate_docs(texts_df, text_column, ngrams=None)
 
     with st.expander('Ejemplos'):
         sample_texts = texts_df[text_column].sample(5).values.tolist()
